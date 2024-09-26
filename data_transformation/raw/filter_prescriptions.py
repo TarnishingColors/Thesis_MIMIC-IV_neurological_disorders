@@ -24,8 +24,8 @@ cur = conn.cursor()
 sql_query = """
 SELECT p.subject_id, a.hadm_id
 FROM mimic_data.patients p
-JOIN mimic_data.diagnoses_icd d ON p.subject_id = d.subject_id
 JOIN mimic_data.admissions a ON p.subject_id = a.subject_id
+JOIN mimic_data.diagnoses_icd d ON p.subject_id = d.subject_id AND a.hadm_id = d.hadm_id
 WHERE d.icd_version = 10
 AND (
     d.icd_code LIKE 'I61%' OR

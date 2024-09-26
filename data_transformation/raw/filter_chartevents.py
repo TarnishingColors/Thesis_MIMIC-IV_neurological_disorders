@@ -1,7 +1,6 @@
 import psycopg2
-import pandas as pd
+from dask import dataframe as dd
 import configparser
-
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -21,8 +20,8 @@ cur = conn.cursor()
 sql_query = """
 SELECT p.subject_id, a.hadm_id
 FROM mimic_data.patients p
-JOIN mimic_data.diagnoses_icd d ON p.subject_id = d.subject_id
 JOIN mimic_data.admissions a ON p.subject_id = a.subject_id
+JOIN mimic_data.diagnoses_icd d ON p.subject_id = d.subject_id AND a.hadm_id = d.hadm_id
 WHERE d.icd_version = 10
 AND (
     d.icd_code LIKE 'I61%' OR
@@ -40,11 +39,11 @@ def filter_matching_rows(df_partition):
     return df_partition[df_partition.apply(lambda row: (row['subject_id'], row['hadm_id']) in results, axis=1)]
 
 
-df = pd.read_csv(f'{file_folder}/hosp/labevents.csv', chunksize=1000000)
+df = dd.read_csv(f'{file_folder}/icu/chartevents.csv', blocksize=125e6)
 
 matching_rows = df.map_partitions(filter_matching_rows)
 
-matching_rows.to_csv('processed_data/prescriptions.csv', single_file=True, header=True)
+matching_rows.to_csv('processed_data/chartevents.csv', single_file=True, header=True)
 
 cur.close()
 conn.close()
