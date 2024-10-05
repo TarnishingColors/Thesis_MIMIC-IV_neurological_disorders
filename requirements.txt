@@ -1,7 +1,7 @@
-pandas
-psycopg2
+pandas~=2.2.3
+psycopg2~=2.9.9
 numpy
-dask
-configparser
+configparser~=7.1.0
 seaborn
 scikit-learn
+SQLAlchemy~=2.0.35

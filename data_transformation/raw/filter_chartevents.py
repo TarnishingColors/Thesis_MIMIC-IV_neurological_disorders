@@ -1,49 +1,36 @@
-import psycopg2
-from dask import dataframe as dd
+import pandas as pd
 import configparser
+from ..data_transfer.utils import Connection, DataTransfer, filter_matching_rows
+from sqlalchemy import text
+
 
 config = configparser.ConfigParser()
 config.read('config.ini')
 
 file_folder = config['raw_data']['file_folder']
 
-conn = psycopg2.connect(
-    dbname   = config['database']['dbname'],
-    user     = config['database']['user'],
-    password = config['database']['password'],
-    host     = config['database']['host'],
-    port     = config['database']['port']
-)
+dt = DataTransfer(Connection(*(x[1] for x in config.items('database'))))
 
-cur = conn.cursor()
+with dt.target_connection.connect() as conn:
+    filter_query = text("""
+    SELECT p.subject_id, a.hadm_id
+    FROM raw.patients p
+    JOIN raw.admissions a ON p.subject_id = a.subject_id
+    JOIN raw.diagnoses_icd d ON p.subject_id = d.subject_id AND a.hadm_id = d.hadm_id
+    WHERE d.icd_version = 10
+    AND (
+        d.icd_code LIKE 'I61%' OR
+        d.icd_code LIKE 'I63%' OR
+        d.icd_code LIKE 'G41%'
+    );
+    """)
 
-sql_query = """
-SELECT p.subject_id, a.hadm_id
-FROM mimic_data.patients p
-JOIN mimic_data.admissions a ON p.subject_id = a.subject_id
-JOIN mimic_data.diagnoses_icd d ON p.subject_id = d.subject_id AND a.hadm_id = d.hadm_id
-WHERE d.icd_version = 10
-AND (
-    d.icd_code LIKE 'I61%' OR
-    d.icd_code LIKE 'I63%' OR
-    d.icd_code LIKE 'G41%'
-);
-"""
+    result = set(conn.execute(filter_query).fetchall())
 
-cur.execute(sql_query)
+    df = pd.read_csv(f'{file_folder}/icu/chartevents.csv', chunksize=1000000)
 
-results = set(cur.fetchall())
+    for i, chunk in enumerate(df):
+        matching_rows = filter_matching_rows(chunk, ['subject_id', 'hadm_id'], result)
 
-
-def filter_matching_rows(df_partition):
-    return df_partition[df_partition.apply(lambda row: (row['subject_id'], row['hadm_id']) in results, axis=1)]
-
-
-df = dd.read_csv(f'{file_folder}/icu/chartevents.csv', blocksize=125e6)
-
-matching_rows = df.map_partitions(filter_matching_rows)
-
-matching_rows.to_csv('processed_data/chartevents.csv', single_file=True, header=True)
-
-cur.close()
-conn.close()
+        dt.read_data(matching_rows)
+        dt.transfer_data('raw', 'chartevents')
