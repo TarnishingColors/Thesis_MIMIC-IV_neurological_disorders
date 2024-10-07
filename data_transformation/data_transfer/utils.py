@@ -1,7 +1,7 @@
 from typing import List, Tuple, Set
 import pandas as pd
 from dataclasses import dataclass
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 
 
 @dataclass
@@ -21,10 +21,17 @@ class DataTransfer:
 
         self.target_connection = create_engine(
             f"{target.dbtype}+psycopg2://{target.username}:{target.password}@{target.host}:{target.port}/{target.dbname}"
-        )
+        ).connect()
+
+    def get_connection(self):
+        return self.target_connection
 
     def read_data(self, data: pd.DataFrame):
         self.data = data
+
+    def run_query(self, sql_query: str):
+        self.target_connection.execute(text(sql_query))
+        self.target_connection.commit()
 
     def transfer_data(self, schema_name: str, table_name: str):
         self.data.to_sql(
