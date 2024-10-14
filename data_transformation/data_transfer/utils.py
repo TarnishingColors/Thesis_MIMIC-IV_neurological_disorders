@@ -1,4 +1,4 @@
-from typing import List, Tuple, Set
+from typing import List, Tuple, Set, Dict
 import pandas as pd
 from dataclasses import dataclass
 from sqlalchemy import create_engine, text
@@ -29,9 +29,14 @@ class DataTransfer:
     def read_data(self, data: pd.DataFrame):
         self.data = data
 
-    def run_query(self, sql_query: str):
-        self.target_connection.execute(text(sql_query))
+    def run_query(self, sql_query: str, parameters: Dict[str, str] = None):
+        self.target_connection.execute(text(sql_query), parameters)
         self.target_connection.commit()
+
+    def fetch_data(self, sql_query: str, parameters: Dict[str, str] = None) -> pd.DataFrame:
+        data = pd.read_sql(sql_query, self.target_connection, params=parameters)
+        self.target_connection.commit()
+        return data
 
     def transfer_data(self, schema_name: str, table_name: str):
         self.data.to_sql(

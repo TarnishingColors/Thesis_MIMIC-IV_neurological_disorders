@@ -1,7 +1,8 @@
-SELECT DISTINCT ON (l.subject_id, l.hadm_id, dl.category)
+SELECT DISTINCT ON (l.subject_id, l.hadm_id, dl.category, dl.label)
     l.subject_id,
     l.hadm_id,
     dl.category,
+    dl.label,
     MIN(l.valuenum) OVER w AS min_value,
     MAX(l.valuenum) OVER w AS max_value,
     AVG(l.valuenum) OVER w AS avg_value,
@@ -18,4 +19,4 @@ SELECT DISTINCT ON (l.subject_id, l.hadm_id, dl.category)
 FROM raw.labevents l
 JOIN mart.d_labitems dl
     ON l.itemid = dl.itemid
-WINDOW w AS (PARTITION BY l.subject_id, l.hadm_id, dl.category);
+WINDOW w AS (PARTITION BY l.subject_id, l.hadm_id, dl.category, dl.label);

@@ -11,7 +11,7 @@ dt = DataTransfer(Connection(*(x[1] for x in config.items('database'))))
 
 dt.run_query(
     """
-    CREATE TABLE mart.d_labitems AS (
+    CREATE VIEW mart.d_labitems AS (
         SELECT *
         FROM raw.d_labitems
         WHERE label IN ('Sodium'

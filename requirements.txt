@@ -1,7 +1,9 @@
 pandas~=2.2.3
 psycopg2~=2.9.9
-numpy
+numpy~=2.1.1
 configparser~=7.1.0
 seaborn
-scikit-learn
+scikit-learn~=1.5.2
 SQLAlchemy~=2.0.35
+joblib~=1.4.2
+sklearn~=0.0
