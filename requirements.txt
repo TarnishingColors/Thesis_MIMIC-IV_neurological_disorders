@@ -9,4 +9,5 @@ joblib~=1.4.2
 sklearn~=0.0
 category_encoders
 optuna~=4.0.0
-xgboost
+xgboost~=2.1.1
+catboost~=1.2.7
