@@ -1,3 +1,7 @@
+# Miscellaneous
+- [X] Admission month
+- [X] Admission time of day
+
 # Labevents 
 ### 1. Electrolytes & Metabolic Panel
 - [X] Sodium (Na)
@@ -37,4 +41,17 @@
 
 ### 8. Hemoglobin and Hematocrit
 - [X] Hemoglobin
-- [ ] Hematocrit
+- [X] Hematocrit
+
+### 9. Miscellaneous
+- [X] Min value (for each feature from above)
+- [X] Max value
+- [X] Avg value
+- [X] Upper bound from range of normal results
+- [X] Lower bound from range of normal results
+- [X] If at least one of the tests was abnormal
+- [X] Ratio No. of Abnormal tests / all tests
+- [X] First abnormal charttime
+- [X] First test charttime
+- [X] Last test charttime
+- [X] Hours between the first abnormal test and discharge
