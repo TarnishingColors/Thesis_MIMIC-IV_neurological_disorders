@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import pandas as pd
-from typing import Union, Dict, List
+from typing import Union, Dict, List, Tuple
 from sklearn.model_selection import train_test_split, cross_val_score
 import xgboost as xgb
 from sklearn.linear_model import LinearRegression
@@ -115,10 +115,21 @@ def learn_models(
 #
 #     return best_params_dict
 
+class FeatureExtractor:
+    def __init__(self, features):
+        self.features = features
 
-def extract_feature_importance(folder: str, model_name: str, features: List[str]):
-    model = joblib.load(f'models/{folder}/{model_name}.joblib')
-    feature_importance = pd.Series(model.feature_importances_, index=features) \
-        if model_name in ['Random Forest', 'XGBoost'] \
-        else pd.Series(model.coef_, index=features)
-    return feature_importance.abs().sort_values(ascending=False)
+    def extract_feature_importance(self, folder: str, model_name: str) -> pd.Series:
+        model = joblib.load(f'models/{folder}/{model_name}.joblib')
+        feature_importance = pd.Series(model.feature_importances_, index=self.features) \
+            if model_name in ['Random Forest', 'XGBoost'] \
+            else pd.Series(model.coef_, index=self.features)
+        return feature_importance.abs().sort_values(ascending=False)
+
+    def select_k_most_relevant_features_from_df(
+            self, k: int, folder: str, model_name: str, X_train: pd.DataFrame, X_test: pd.DataFrame
+    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        top_k_features = self.extract_feature_importance(folder, model_name).head(k).keys().tolist()
+        return (
+            X_train[X_train.columns.intersection(top_k_features)], X_test[X_test.columns.intersection(top_k_features)]
+        )
