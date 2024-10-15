@@ -55,65 +55,57 @@ def learn_models(
     return results_df
 
 
-# def objective(trial, model_name: str, X_train, y_train):
-#     # Define hyperparameter search space for each model
-#     if model_name == 'Ridge Regression':
-#         alpha = trial.suggest_loguniform('alpha', 0.001, 10.0)
-#         model = Ridge(alpha=alpha)
-#
-#     elif model_name == 'Lasso Regression':
-#         alpha = trial.suggest_loguniform('alpha', 0.001, 1.0)
-#         model = Lasso(alpha=alpha)
-#
-#     elif model_name == 'Support Vector Regression':
-#         C = trial.suggest_loguniform('C', 0.1, 10)
-#         kernel = trial.suggest_categorical('kernel', ['linear', 'rbf'])
-#         model = SVR(C=C, kernel=kernel)
-#
-#     elif model_name == 'Decision Tree Regression':
-#         max_depth = trial.suggest_int('max_depth', 3, 10)
-#         model = DecisionTreeRegressor(max_depth=max_depth)
-#
-#     elif model_name == 'Random Forest Regression':
-#         n_estimators = trial.suggest_int('n_estimators', 50, 200)
-#         max_depth = trial.suggest_int('max_depth', 5, 20)
-#         model = RandomForestRegressor(n_estimators=n_estimators, max_depth=max_depth, n_jobs=-1)
-#
-#     elif model_name == 'Gradient Boosting Regression':
-#         n_estimators = trial.suggest_int('n_estimators', 50, 200)
-#         learning_rate = trial.suggest_loguniform('learning_rate', 0.01, 0.2)
-#         model = GradientBoostingRegressor(n_estimators=n_estimators, learning_rate=learning_rate)
-#
-#     # Cross-validation or training
-#     model.fit(X_train, y_train)
-#     return -np.mean(cross_val_score(model, X_train, y_train, cv=3, scoring='neg_root_mean_squared_error'))
+class ModelOptimizer:
+    def __init__(self, df: pd.DataFrame, label: str = 'los', test_size: float = 0.3, random_state: int = 42):
+        self.df = df.dropna().copy()
+        self.label = label
+        self.test_size = test_size
+        self.random_state = random_state
+        self.model = None
 
+        self.X_train, self.X_test, self.y_train, self.y_test = self.prepare_data()
 
-# def hyperparameter_optimization(
-#         models: Dict[str, ModelRegressor],
-#         df: pd.DataFrame,
-#         label: str = 'los',
-#         n_trials: int = 50,
-#         random_state: int = 42
-# ) -> Dict[str, Dict[str, float]]:
-#     best_params_dict = {}
-#
-#     # Preprocessing data
-#     cur_df = df.dropna().copy()
-#     X = cur_df.drop(label, axis=1).values
-#     y = cur_df[label].values
-#
-#     for model_name in models.keys():
-#         print(f"Optimizing hyperparameters for {model_name}...")
-#
-#         # Optuna study for hyperparameter optimization
-#         study = optuna.create_study(direction='minimize', random_state=random_state)
-#         study.optimize(lambda trial: objective(trial, model_name, X, y), n_trials=n_trials)
-#
-#         best_params_dict[model_name] = study.best_params
-#         print(f"Best parameters for {model_name}: {study.best_params}")
-#
-#     return best_params_dict
+    def prepare_data(self):
+        X = self.df.drop(self.label, axis=1).values
+        y = self.df[self.label].values
+        return train_test_split(X, y, test_size=self.test_size, random_state=self.random_state)
+
+    def objective(self, trial, model_name: str):
+        if model_name == 'Random Forest':
+            n_estimators = trial.suggest_int('n_estimators', 50, 200)
+            max_depth = trial.suggest_int('max_depth', 5, 20)
+            self.model = RandomForestRegressor(n_estimators=n_estimators, max_depth=max_depth, n_jobs=-1)
+
+        elif model_name == 'XGBoost':
+            n_estimators = trial.suggest_int('n_estimators', 50, 200)
+            max_depth = trial.suggest_int('max_depth', 3, 10)
+            learning_rate = trial.suggest_loguniform('learning_rate', 0.01, 0.3)
+            self.model = xgb.XGBRegressor(n_estimators=n_estimators, max_depth=max_depth, learning_rate=learning_rate, n_jobs=-1)
+
+        elif model_name == 'CatBoost':
+            n_estimators = trial.suggest_int('n_estimators', 50, 200)
+            depth = trial.suggest_int('depth', 4, 10)
+            learning_rate = trial.suggest_loguniform('learning_rate', 0.01, 0.3)
+            self.model = CatBoostRegressor(n_estimators=n_estimators, depth=depth, learning_rate=learning_rate, verbose=0)
+
+        self.model.fit(self.X_train, self.y_train)
+        return -np.mean(cross_val_score(self.model, self.X_train, self.y_train, cv=3, scoring='neg_root_mean_squared_error'))
+
+    def optimize_model(self, model_name: str, n_trials: int = 50, random_state: int = 42):
+        print(f"Optimizing hyperparameters for {model_name}...")
+        study = optuna.create_study(direction='minimize', random_state=random_state)
+        study.optimize(lambda trial: self.objective(trial, model_name), n_trials=n_trials)
+
+        print(f"Best parameters for {model_name}: {study.best_params}")
+        return study.best_params
+
+    def optimize_models(self, models: list, n_trials: int = 50, random_state: int = 42):
+        best_params_dict = {}
+        for model_name in models:
+            best_params = self.optimize_model(model_name, n_trials=n_trials, random_state=random_state)
+            best_params_dict[model_name] = best_params
+        return best_params_dict
+
 
 class FeatureExtractor:
     def __init__(self, features):
@@ -122,7 +114,7 @@ class FeatureExtractor:
     def extract_feature_importance(self, folder: str, model_name: str) -> pd.Series:
         model = joblib.load(f'models/{folder}/{model_name}.joblib')
         feature_importance = pd.Series(model.feature_importances_, index=self.features) \
-            if model_name in ['Random Forest', 'XGBoost'] \
+            if model_name in ['Random Forest', 'XGBoost', 'CatBoost'] \
             else pd.Series(model.coef_, index=self.features)
         return feature_importance.abs().sort_values(ascending=False)
 
