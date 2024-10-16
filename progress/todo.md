@@ -4,3 +4,5 @@
 - [ ] Implement additional algorithms
 - [ ] Over-sample Ddta with SMOT
 - [ ] Analyse prescriptions table
+- [ ] Try RNN with chartevents/labevents to predict LOS
+- [ ] Consider feature generation from prescriptions

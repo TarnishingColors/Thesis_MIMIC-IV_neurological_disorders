@@ -55,3 +55,30 @@
 - [X] First test charttime
 - [X] Last test charttime
 - [X] Hours between the first abnormal test and discharge
+
+# Chartevents 
+### 1. Vital Signs
+- [ ] Heart Rate (HR)
+- [ ] Respiratory Rate (RR)
+- [ ] Blood Pressure (BP): Systolic and Diastolic
+- [ ] Oxygen Saturation (SpO2)
+- [ ] Temperature
+### 2. Neurological Monitoring
+- [ ] Glasgow Coma Scale (GCS): Scores like eye response, verbal response, and motor response provide key information about neurological function.
+- [ ] Pupillary Response: Measures of pupil size and reactivity are critical in assessing neurological deterioration.
+### 3. Lab Results Related to Neurological Conditions
+- [ ] Blood Gas Analysis: Arterial pH, pCO2, pO2 can reflect respiratory function and metabolic state, which can affect brain function.
+- [ ] Serum Sodium: Dysnatremias (particularly hyponatremia) are common in neurological patients.
+- [ ] Lactate Levels: High lactate levels may indicate tissue hypoxia, a concerning sign in critically ill patients.
+### 4. Fluid and Electrolytes
+- [ ] Serum Sodium/Potassium/Chloride: Imbalances in electrolytes can impact neurological function and are common in critically ill patients.
+- [ ] Blood Urea Nitrogen (BUN) and Creatinine: Renal function indicators, which may worsen during ICU stay and impact recovery.
+### 5. Respiratory and Cardiovascular Support
+- [ ] Ventilator Settings/Parameters: Mechanical ventilation settings (tidal volume, PEEP, FiO2) and blood gas results can show respiratory compromise, which may predict longer ICU stays.
+- [ ] Inotrope/Vasopressor Use: Indicators of cardiovascular instability, which can affect neurological outcomes and LOS.
+### 6. Sedation and Pain Management
+- [ ] Sedation Scales: Monitoring for sedation depth (e.g., Richmond Agitation-Sedation Scale) as this impacts neurological assessments.
+- [ ] Opioid and Sedative Administration: These drugs are often needed for patients in the ICU but can cloud neurological examination.
+### 7. Complication-Related Tests
+- [ ] Coagulation Profile: Tests like prothrombin time (PT), INR, and partial thromboplastin time (PTT) can signal coagulopathies, which are complications in critically ill neurological patients.
+- [ ] Liver Function Tests (AST/ALT, Bilirubin): Liver dysfunction may occur during critical illness and affect brain function.
