@@ -298,8 +298,8 @@ dt.run_query(
 
     DO $$
         DECLARE
-            start_date TIMESTAMP := '2110-01-01 00:00:00';
-            end_date TIMESTAMP := '2211-01-31 00:00:00';
+            start_date TIMESTAMP := '2110-01-16 00:00:00';
+            end_date TIMESTAMP := '2211-01-19 00:00:00';
             cur_date TIMESTAMP := start_date;
             week_label VARCHAR;  -- Variable to hold the partition label (year_week)
         BEGIN
