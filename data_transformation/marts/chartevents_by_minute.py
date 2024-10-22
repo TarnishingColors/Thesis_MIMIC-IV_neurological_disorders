@@ -35,15 +35,16 @@ hadm_ids = dt.fetch_data(
 hadm_ids = [hadm_id for hadm_id in hadm_ids if hadm_id not in already_there_hadm_ids]
 
 for i, hadm_id in enumerate(hadm_ids):
-    min_charttime, max_charttime = dt.fetch_data(
+    min_charttime, max_charttime, subject_id = dt.fetch_data(
         f"""
         SELECT MIN(charttime) AS min_charttime
             , MAX(charttime) AS max_charttime
+            , MIN(subject_id) AS subject_id
         FROM ods.chartevents_grouped
         WHERE hadm_id = {hadm_id}
         """
     ).iloc[0].tolist()
-    print(f'{i + 1} out of {len(hadm_ids)}', hadm_id, min_charttime, max_charttime)
+    print(f'{i + 1} out of {len(hadm_ids)}', hadm_id, subject_id, min_charttime, max_charttime)
     dt.run_query(
         f"""
         DROP TABLE IF EXISTS timestamps;
@@ -58,8 +59,8 @@ for i, hadm_id in enumerate(hadm_ids):
         );
         
         INSERT  INTO mart.chartevents_by_minute
-        SELECT c.subject_id
-            , c.hadm_id
+        SELECT {subject_id} AS subject_id
+            , {hadm_id} AS hadm_id
             , t.dd AS charttime
             , CASE WHEN t.dd = c.charttime THEN c.hr_value END AS hr_value
             , CASE WHEN t.dd = c.charttime THEN c.hr_warning END AS hr_warning
