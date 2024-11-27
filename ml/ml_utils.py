@@ -43,8 +43,8 @@ def learn_models(
 
         results.append({
             'model': model_name,
-            'MSE': mse,
             'MAE': mae,
+            'MSE': mse,
             'RMSE': rmse_value,
             'R2': r2
         })
