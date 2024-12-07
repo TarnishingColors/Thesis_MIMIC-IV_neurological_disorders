@@ -1,15 +1,18 @@
-import pandas as pd
+"""Module to create a filtered raw table of chartevents"""
+
 import configparser
-from ..data_transfer.utils import Connection, DataTransfer, filter_matching_rows
+import pandas as pd
 from sqlalchemy import text
+from ..data_transfer.utils import ConnectionDetails, DataTransfer, filter_matching_rows
 
 
+# pylint: disable=duplicate-code
 config = configparser.ConfigParser()
 config.read('config.ini')
 
 file_folder = config['raw_data']['file_folder']
 
-dt = DataTransfer(Connection(*(x[1] for x in config.items('database'))))
+dt = DataTransfer(ConnectionDetails(*(x[1] for x in config.items('database'))))
 conn = dt.get_connection()
 
 filter_query = text("""
@@ -24,6 +27,7 @@ AND (
     d.icd_code LIKE 'G41%'
 );
 """)
+# pylint: enable=duplicate-code
 
 result = set(conn.execute(filter_query).fetchall())
 

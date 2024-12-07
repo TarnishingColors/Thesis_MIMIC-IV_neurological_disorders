@@ -1,12 +1,16 @@
-import configparser
-from ..data_transfer.utils import Connection, DataTransfer
+"""Module to create admissions mart"""
 
+import configparser
+from ..data_transfer.utils import ConnectionDetails, DataTransfer
+
+# pylint: disable=duplicate-code
 config = configparser.ConfigParser()
 config.read('config.ini')
 
 file_folder = config['raw_data']['file_folder']
+# pylint: enable=duplicate-code
 
-dt = DataTransfer(Connection(*(x[1] for x in config.items('database'))))
+dt = DataTransfer(ConnectionDetails(*(x[1] for x in config.items('database'))))
 
 dt.run_query(
     """

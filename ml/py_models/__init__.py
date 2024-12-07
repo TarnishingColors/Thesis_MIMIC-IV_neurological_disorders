@@ -1,16 +1,19 @@
+"""Implementation of ML models"""
+
+from typing import List, Tuple
 import os
 import sys
 sys.path.append(f'{os.getcwd()}/data_transformation/data_transfer')
-from typing import List
+# pylint: disable=wrong-import-position
 from utils import DataTransfer, Connection
 import pandas as pd
+import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Masking
 from tensorflow.keras.preprocessing.sequence import pad_sequences
-import numpy as np
+# pylint: enable=wrong-import-position
 
 
 chartevent_tests = [
@@ -186,7 +189,15 @@ chartevent_tests = [
 
 
 class LSTMModel:
+    """
+    LSTM model constructor
+    """
     def __init__(self, chartevent_tests: List[str], connection: Connection):
+        """
+        :param chartevent_tests: list of chartevent tests
+        :param connection: connection object
+        """
+
         self.model = Sequential()
         self.model.add(Masking(mask_value=0.0, input_shape=(None, len(chartevent_tests)))) # Mask for variable-length sequences
         self.model.add(LSTM(128, return_sequences=False))
@@ -196,7 +207,15 @@ class LSTMModel:
         self.chartevent_tests = chartevent_tests
         self.dt = DataTransfer(connection)
 
-    def read_transform_data(self, df: pd.DataFrame, with_sliding_window: bool = False, size: int = 256, step: int = 128):
+    def read_transform_data(self, df: pd.DataFrame, with_sliding_window: bool = False, size: int = 256, step: int = 128) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        :param df: dataframe
+        :param with_sliding_window: flag for sliding window
+        :param size: size of sliding window
+        :param step: step of sliding window
+        :return: tuple consisting of sequences and targets
+        """
+
         df = df.sort_values(by=['hadm_id', 'charttime'])
 
         df = df.drop(columns=['subject_id'])
@@ -248,11 +267,30 @@ class LSTMModel:
 
         return np.array(sequences), np.array(los_targets)
 
-    def split_data(self, X, y, test_size=0.2):
+    def split_data(self, X, y, test_size=0.2) -> List:
+        """
+        :param X: data
+        :param y: targets
+        :param test_size: test size
+        :return: data split in train and test
+        """
+
         return train_test_split(X, y, test_size=test_size, random_state=42)
 
-    def train_model(self, X_train, y_train, epochs=50, batch_size=16):
+    def train_model(self, X_train, y_train, epochs=50, batch_size=16) -> None:
+        """
+        :param X_train: training data
+        :param y_train: targets of training data
+        :param epochs: number of epochs
+        :param batch_size: size of batch
+        """
+
         self.model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size, validation_split=0.2)
 
-    def predict(self, X_test):
+    def predict(self, X_test) -> List[float]:
+        """
+        :param X_test: test data
+        :return: list of predictions
+        """
+
         return self.model.predict(X_test)
