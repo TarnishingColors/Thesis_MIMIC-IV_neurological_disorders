@@ -25,4 +25,4 @@ jobs:
          pylint -j 2 data_transformation ml/py_models --rcfile=.pylintrc
     - name: Test with pytest
       run: |
-        pytest --maxfail=0
+        python -m pytest
