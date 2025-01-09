@@ -7,7 +7,16 @@ import xgboost as xgb
 from sklearn.linear_model import LinearRegression
 from catboost import CatBoostRegressor
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from sklearn.metrics import (
+    mean_squared_error,
+    mean_absolute_error,
+    r2_score,
+    accuracy_score,
+    precision_score,
+    recall_score,
+    roc_auc_score,
+    f1_score
+)
 import joblib
 import optuna
 
@@ -24,6 +33,7 @@ def learn_models(
         models: Dict[str, ModelRegressor],
         dfs: Union[List[pd.DataFrame], Dict[str, List[pd.DataFrame]]],
         folder: str,
+        regression: bool = True
 ) -> pd.DataFrame:
     results = []
     os.makedirs(f'models/{folder}', exist_ok=True)
@@ -36,20 +46,44 @@ def learn_models(
         y_pred = model.predict(X_test)
 
         joblib.dump(model, f'models/{folder}/{model_name}.joblib')
-        mse = mean_squared_error(y_test, y_pred)
-        mae = mean_absolute_error(y_test, y_pred)
-        r2 = r2_score(y_test, y_pred)
-        rmse_value = rmse(y_test, y_pred)
 
-        results.append({
-            'model': model_name,
-            'MAE': mae,
-            'MSE': mse,
-            'RMSE': rmse_value,
-            'R2': r2
-        })
+        if regression:
+            mse = mean_squared_error(y_test, y_pred)
+            mae = mean_absolute_error(y_test, y_pred)
+            r2 = r2_score(y_test, y_pred)
+            rmse_value = rmse(y_test, y_pred)
 
-        print(f"{model_name}: RMSE = {rmse_value}, MAE = {mae}, R² = {r2}")
+            results.append({
+                'model': model_name,
+                'MAE': mae,
+                'MSE': mse,
+                'RMSE': rmse_value,
+                'R2': r2
+            })
+
+            print(f"{model_name}: RMSE = {rmse_value}, MAE = {mae}, R² = {r2}")
+
+        else:
+            accuracy = accuracy_score(y_test, y_pred)
+            precision = precision_score(y_test, y_pred, average='weighted', zero_division=0)
+            recall = recall_score(y_test, y_pred, average='weighted', zero_division=0)
+            f1 = f1_score(y_test, y_pred, average=None)  # Per-class F1-score
+
+            overall_precision = precision_score(y_test, y_pred, average="weighted")  # Weighted by class support
+            overall_recall = recall_score(y_test, y_pred, average="weighted")
+            overall_f1 = f1_score(y_test, y_pred, average="weighted")
+
+            results.append({
+                'model': model_name,
+                'Accuracy': accuracy,
+                'Precision': precision,
+                'Recall': recall,
+                'F1-Score': f1
+            })
+
+            print(
+                f"{model_name} (Classification): Accuracy = {accuracy}, Precision = {precision}, Recall = {recall}, F1-Score = {f1}"
+            )
 
     results_df = pd.DataFrame(results)
     return results_df
