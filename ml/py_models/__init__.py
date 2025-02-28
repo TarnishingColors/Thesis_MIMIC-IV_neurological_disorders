@@ -190,6 +190,10 @@ chartevent_tests = [
 
 
 def classify_los(los):
+    """
+    :param los: length of stay (in days)
+    :return: class (0 if stay is shorter than 2 days, 2 if stay is longer than a week, 1 otherwise)
+    """
     if los < 3:
         los = 0
     elif los < 8:
