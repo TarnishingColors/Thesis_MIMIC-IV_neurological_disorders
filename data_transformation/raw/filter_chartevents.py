@@ -9,6 +9,11 @@ from ..data_transfer.utils import ConnectionDetails, DataTransfer, filter_matchi
 # pylint: disable=duplicate-code
 
 def process_chunk(chunk, i, result):
+    """
+    :param chunk: chunk size
+    :param i: is used to track chunk id
+    :param result: result of a fetch query with relevant patients
+    """
     print(f"Processing chunk {i}")
 
     config = configparser.ConfigParser()
