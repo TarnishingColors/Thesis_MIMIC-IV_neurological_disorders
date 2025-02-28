@@ -13,6 +13,7 @@ from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Masking
 from tensorflow.keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.utils import to_categorical
 # pylint: enable=wrong-import-position
 
 
@@ -188,6 +189,17 @@ chartevent_tests = [
 ]
 
 
+def classify_los(los):
+    if los < 3:
+        los = 0
+    elif los < 8:
+        los = 1
+    else:
+        los = 2
+
+    return los
+
+
 class LSTMModel:
     """
     LSTM model constructor
@@ -201,13 +213,20 @@ class LSTMModel:
         self.model = Sequential()
         self.model.add(Masking(mask_value=0.0, input_shape=(None, len(chartevent_tests)))) # Mask for variable-length sequences
         self.model.add(LSTM(128, return_sequences=False))
-        self.model.add(Dense(1))
-        self.model.compile(optimizer='adam', loss='mean_squared_error')
+        self.model.add(Dense(3, activation='softmax'))
+        self.model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
         self.scaler = MinMaxScaler()
         self.chartevent_tests = chartevent_tests
         self.dt = DataTransfer(connection)
 
-    def read_transform_data(self, df: pd.DataFrame, with_sliding_window: bool = False, size: int = 256, step: int = 128) -> Tuple[np.ndarray, np.ndarray]:
+    def read_transform_data(
+            self,
+            df: pd.DataFrame,
+            with_sliding_window: bool = False,
+            size: int = 256,
+            step: int = 128,
+            classification: bool = True
+    ) -> Tuple[np.ndarray, np.ndarray]:
         """
         :param df: dataframe
         :param with_sliding_window: flag for sliding window
@@ -254,16 +273,22 @@ class LSTMModel:
                     end = start + size
                     window = sequence[start:end]
 
-                    remaining_los = (final_time - group['charttime'].iloc[end - 1]).total_seconds() / 3600
+                    remaining_los = (final_time - group['charttime'].iloc[end - 1]).total_seconds() / 3600 / 24
                     sequences.append(window)
+                    if classification:
+                        remaining_los = classify_los(remaining_los)
                     los_targets.append(remaining_los)
 
             else:
-                los = (final_time - group['charttime'].min()).total_seconds() / 3600
+                los = (final_time - group['charttime'].min()).total_seconds() / 3600 / 24
+                if classification:
+                    los = classify_los(los)
                 sequences.append(sequence)
                 los_targets.append(los)
 
         sequences = pad_sequences(sequences, dtype='float32', padding='post')
+
+        los_targets = to_categorical(los_targets, num_classes=3)
 
         return np.array(sequences), np.array(los_targets)
 
@@ -293,4 +318,4 @@ class LSTMModel:
         :return: list of predictions
         """
 
-        return self.model.predict(X_test)
+        return np.argmax(self.model.predict(X_test), axis=1)

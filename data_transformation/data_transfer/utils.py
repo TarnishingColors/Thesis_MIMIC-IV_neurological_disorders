@@ -33,7 +33,8 @@ class DataTransfer:
         self.data = None
 
         self.target_connection = create_engine(
-            f"{target.dbtype}+psycopg2://{target.username}:{target.password}@{target.host}:{target.port}/{target.dbname}"
+            f"{target.dbtype}+psycopg2://{target.username}:{target.password}@{target.host}:{target.port}/{target.dbname}",
+            future=True
         ).connect()
 
     def get_connection(self) -> Connection:
@@ -74,7 +75,6 @@ class DataTransfer:
         :param schema_name: name of the schema in DB
         :param table_name: name of the table in DB
         """
-
         self.data.to_sql(
             table_name,
             self.target_connection,
@@ -83,6 +83,7 @@ class DataTransfer:
             index=False,
             method='multi'
         )
+        self.target_connection.commit()
 
 
 def filter_matching_rows(df: pd.DataFrame, target_columns: List[str], result: Set[Tuple]) -> pd.DataFrame:
