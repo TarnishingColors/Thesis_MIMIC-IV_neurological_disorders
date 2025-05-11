@@ -17,3 +17,4 @@ transformers==4.6.1
 torch==2.5.1
 pytorch_forecasting==1.2.0
 atlassian-python-api
+pyyaml
