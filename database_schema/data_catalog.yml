@@ -1,0 +1,334 @@
+tables:
+  - name: PATIENTS
+    description: "Contains demographic and anchor year data for patients."
+    columns:
+      - name: SUBJECT_ID
+        type: INT
+        primary_key: true
+        description: "Unique patient identifier."
+      - name: GENDER
+        type: VARCHAR
+        description: "Patient's gender."
+      - name: ANCHOR_AGE
+        type: INT
+        description: "Age of patient at anchor year."
+      - name: ANCHOR_YEAR
+        type: INT
+        description: "Anchor year used for data alignment."
+      - name: ANCHOR_YEAR_GROUP
+        type: VARCHAR
+        description: "Age group classification at anchor year."
+      - name: DOD
+        type: TIMESTAMP
+        description: "Date of death (if applicable)."
+
+  - name: ICUSTAYS
+    description: "Details about ICU stays for each hospital admission."
+    columns:
+      - name: SUBJECT_ID
+        type: INT
+        description: "Reference to PATIENTS.SUBJECT_ID."
+      - name: HADM_ID
+        type: INT
+        description: "Reference to ADMISSIONS.HADM_ID."
+      - name: STAY_ID
+        type: INT
+        primary_key: true
+        description: "Unique identifier for ICU stay."
+      - name: FIRST_CAREUNIT
+        type: VARCHAR
+        description: "Initial care unit for the ICU stay."
+      - name: LAST_CAREUNIT
+        type: VARCHAR
+        description: "Final care unit before discharge."
+      - name: INTIME
+        type: TIMESTAMP
+        description: "ICU admission timestamp."
+      - name: OUTTIME
+        type: TIMESTAMP
+        description: "ICU discharge timestamp."
+      - name: LOS
+        type: DOUBLE
+        description: "Length of ICU stay in days."
+
+  - name: ADMISSIONS
+    description: "Hospital admission details for each patient."
+    columns:
+      - name: SUBJECT_ID
+        type: INT
+        description: "Reference to PATIENTS.SUBJECT_ID."
+      - name: HADM_ID
+        type: INT
+        primary_key: true
+        description: "Unique hospital admission ID."
+      - name: ADMITTIME
+        type: TIMESTAMP
+        description: "Hospital admission time."
+      - name: DISCHTIME
+        type: TIMESTAMP
+        description: "Hospital discharge time."
+      - name: DEATHTIME
+        type: TIMESTAMP
+        description: "Patient death timestamp (if applicable)."
+      - name: ADMISSION_TYPE
+        type: VARCHAR
+        description: "Type of hospital admission (e.g., emergency, elective)."
+      - name: ADMISSION_LOCATION
+        type: VARCHAR
+        description: "Location from which patient was admitted."
+      - name: DISCHARGE_LOCATION
+        type: VARCHAR
+        description: "Location to which patient was discharged."
+      - name: INSURANCE
+        type: VARCHAR
+        description: "Type of insurance."
+      - name: LANGUAGE
+        type: VARCHAR
+        description: "Primary language spoken by the patient."
+      - name: MARITAL_STATUS
+        type: VARCHAR
+        description: "Marital status of the patient."
+      - name: ETHNICITY
+        type: VARCHAR
+        description: "Ethnic background of the patient."
+      - name: EDREGTIME
+        type: TIMESTAMP
+        description: "Time the patient was registered in the ED."
+      - name: EDOUTTIME
+        type: TIMESTAMP
+        description: "Time the patient left the ED."
+      - name: HOSPITAL_EXPIRE_FLAG
+        type: SMALLINT
+        description: "Flag indicating if the patient died during hospital stay."
+
+  - name: DIAGNOSES_ICD
+    description: "ICD-coded diagnoses assigned during hospital admissions."
+    columns:
+      - name: SUBJECT_ID
+        type: INT
+        description: "Reference to PATIENTS.SUBJECT_ID."
+      - name: HADM_ID
+        type: INT
+        description: "Reference to ADMISSIONS.HADM_ID."
+      - name: SEQ_NUM
+        type: INT
+        description: "Sequence number of the diagnosis."
+      - name: ICD_CODE
+        type: VARCHAR
+        description: "ICD diagnosis code."
+      - name: ICD_VERSION
+        type: INT
+        description: "ICD version (9 or 10)."
+
+  - name: PROCEDURES_ICD
+    description: "ICD-coded procedures performed during admissions."
+    columns:
+      - name: SUBJECT_ID
+        type: INT
+        description: "Reference to PATIENTS.SUBJECT_ID."
+      - name: HADM_ID
+        type: INT
+        description: "Reference to ADMISSIONS.HADM_ID."
+      - name: SEQ_NUM
+        type: INT
+        description: "Sequence number of the procedure."
+      - name: CHARTDATE
+        type: TIMESTAMP
+        description: "Date of the procedure."
+      - name: ICD_CODE
+        type: VARCHAR
+        description: "ICD procedure code."
+      - name: ICD_VERSION
+        type: INT
+        description: "ICD version (9 or 10)."
+
+  - name: CHARTEVENTS
+    description: "Time-stamped charted data collected during ICU stays."
+    columns:
+      - name: SUBJECT_ID
+        type: INT
+        description: "Reference to PATIENTS.SUBJECT_ID."
+      - name: HADM_ID
+        type: INT
+        description: "Reference to ADMISSIONS.HADM_ID."
+      - name: STAY_ID
+        type: INT
+        description: "Reference to ICUSTAYS.STAY_ID."
+      - name: CHARTTIME
+        type: TIMESTAMP
+        description: "Timestamp when the measurement was taken."
+      - name: STORETIME
+        type: TIMESTAMP
+        description: "Timestamp when the measurement was stored."
+      - name: ITEMID
+        type: INT
+        description: "Reference to D_ITEMS.ITEMID."
+      - name: VALUE
+        type: VARCHAR
+        description: "Recorded value."
+      - name: VALUENUM
+        type: DOUBLE
+        description: "Numeric value of the measurement."
+      - name: VALUEUOM
+        type: VARCHAR
+        description: "Unit of measurement."
+      - name: WARNING
+        type: SMALLINT
+        description: "Flag indicating a warning condition."
+
+  - name: LABEVENTS
+    description: "Lab test results and metadata."
+    columns:
+      - name: LABEVENT_ID
+        type: INT
+        primary_key: true
+        description: "Unique ID for lab event."
+      - name: SUBJECT_ID
+        type: INT
+        description: "Reference to PATIENTS.SUBJECT_ID."
+      - name: HADM_ID
+        type: INT
+        description: "Reference to ADMISSIONS.HADM_ID."
+      - name: SPECIMEN_ID
+        type: INT
+        description: "Identifier for specimen sample."
+      - name: ITEMID
+        type: INT
+        description: "Reference to D_LABITEMS.ITEMID."
+      - name: CHARTTIME
+        type: TIMESTAMP
+        description: "Time lab sample was charted."
+      - name: STORETIME
+        type: TIMESTAMP
+        description: "Time lab sample was stored."
+      - name: VALUE
+        type: VARCHAR
+        description: "Lab test result as string."
+      - name: VALUENUM
+        type: DOUBLE
+        description: "Numeric lab result."
+      - name: VALUEUOM
+        type: VARCHAR
+        description: "Unit of measurement for lab value."
+      - name: REF_RANGE_LOWER
+        type: DOUBLE
+        description: "Lower bound of reference range."
+      - name: REF_RANGE_UPPER
+        type: DOUBLE
+        description: "Upper bound of reference range."
+      - name: FLAG
+        type: VARCHAR
+        description: "Flag for abnormal or special result."
+      - name: PRIORITY
+        type: VARCHAR
+        description: "Lab test priority."
+      - name: COMMENTS
+        type: VARCHAR
+        description: "Comments about the lab result."
+
+  - name: PRESCRIPTIONS
+    description: "Medication orders and prescription details."
+    columns:
+      - name: SUBJECT_ID
+        type: INT
+        description: "Reference to PATIENTS.SUBJECT_ID."
+      - name: HADM_ID
+        type: INT
+        description: "Reference to ADMISSIONS.HADM_ID."
+      - name: PHARMACY_ID
+        type: INT
+        description: "Identifier for the pharmacy event."
+      - name: STARTTIME
+        type: TIMESTAMP
+        description: "Prescription start time."
+      - name: STOPTIME
+        type: TIMESTAMP
+        description: "Prescription end time."
+      - name: DRUG_TYPE
+        type: VARCHAR
+        description: "Type of drug (e.g., prescription, IV)."
+      - name: DRUG
+        type: VARCHAR
+        description: "Drug name."
+      - name: GSN
+        type: VARCHAR
+        description: "Generic sequence number."
+      - name: NDC
+        type: VARCHAR
+        description: "National Drug Code."
+      - name: PROD_STRENGTH
+        type: VARCHAR
+        description: "Strength of the product."
+      - name: FORM_RX
+        type: VARCHAR
+        description: "Dosage form (prescription)."
+      - name: DOSE_VAL_RX
+        type: VARCHAR
+        description: "Dose value prescribed."
+      - name: DOSE_UNIT_RX
+        type: VARCHAR
+        description: "Unit of the dose."
+      - name: FORM_VAL_DISP
+        type: VARCHAR
+        description: "Dispensed form value."
+      - name: FORM_UNIT_DISP
+        type: VARCHAR
+        description: "Unit for dispensed form."
+      - name: DOSES_PER_24_HRS
+        type: DOUBLE
+        description: "Frequency of dosing per 24 hours."
+      - name: ROUTE
+        type: VARCHAR
+        description: "Route of administration (e.g., oral, IV)."
+
+  - name: D_ITEMS
+    description: "Metadata describing charted items."
+    columns:
+      - name: ITEMID
+        type: INT
+        primary_key: true
+        description: "Unique identifier for chart item."
+      - name: LABEL
+        type: VARCHAR
+        description: "Human-readable label."
+      - name: ABBREVIATION
+        type: VARCHAR
+        description: "Shortened label."
+      - name: LINKSTO
+        type: VARCHAR
+        description: "Table the item belongs to."
+      - name: CATEGORY
+        type: VARCHAR
+        description: "Category of the charted item."
+      - name: UNITNAME
+        type: VARCHAR
+        description: "Default unit of measurement."
+      - name: PARAM_TYPE
+        type: VARCHAR
+        description: "Parameter type (e.g., numeric, categorical)."
+      - name: LOWNORMALVALUE
+        type: DOUBLE
+        description: "Lower bound of normal range."
+      - name: HIGHNORMALVALUE
+        type: DOUBLE
+        description: "Upper bound of normal range."
+
+  - name: D_LABITEMS
+    description: "Metadata describing lab tests."
+    columns:
+      - name: ITEMID
+        type: INT
+        primary_key: true
+        description: "Unique lab item ID."
+      - name: LABEL
+        type: VARCHAR
+        description: "Human-readable label for lab item."
+      - name: FLUID
+        type: VARCHAR
+        description: "Type of fluid tested (e.g., blood, urine)."
+      - name: CATEGORY
+        type: VARCHAR
+        description: "Category of the lab item."
+      - name: LOINC_CODE
+        type: VARCHAR
+        description: "LOINC code for standardized identification."
