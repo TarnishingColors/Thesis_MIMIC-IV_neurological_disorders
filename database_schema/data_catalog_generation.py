@@ -1,22 +1,19 @@
 import yaml
 from atlassian import Confluence
-import configparser
+import os
 
-
-config = configparser.ConfigParser()
-config.read('config.ini')
 
 with open("database_schema/data_catalog.yml") as f:
     catalog = yaml.safe_load(f)
 
 confluence = Confluence(
-    url=f'https://{config["confluence"]["workspace_address"]}.atlassian.net/wiki',
-    username=config["confluence"]["username"],
-    password=config["confluence"]["api_token"]
+    url=f'https://{os.environ["CONFLUENCE_WORKSPACE_ADDRESS"]}.atlassian.net/wiki',
+    username=os.environ["CONFLUENCE_USERNAME"],
+    password=os.environ["CONFLUENCE_API_TOKEN"]
 )
 
-space = config["confluence"]["space_name"]
-parent_page_id = config["confluence"]["parent_page_id"]
+space = os.environ["CONFLUENCE_SPACE_KEY"]
+parent_page_id = os.environ["CONFLUENCE_PARENT_PAGE_ID"]
 
 for table in catalog['tables']:
     title = f"Table: {table['name']}"

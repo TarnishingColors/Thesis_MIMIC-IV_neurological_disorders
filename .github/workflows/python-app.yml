@@ -30,5 +30,8 @@ jobs:
       env:
         CONFLUENCE_API_TOKEN: ${{ secrets.CONFLUENCE_API_TOKEN }}
         CONFLUENCE_USERNAME: ${{ secrets.CONFLUENCE_USERNAME }}
+        CONFLUENCE_WORKSPACE_ADDRESS: ${{ secrets.CONFLUENCE_WORKSPACE_ADDRESS }}
+        CONFLUENCE_SPACE_KEY: ${{ secrets.CONFLUENCE_SPACE_KEY }}
+        CONFLUENCE_PARENT_PAGE_ID: ${{ secrets.CONFLUENCE_PARENT_PAGE_ID }}
       run: |
         python database_schema/data_catalog_generation.py
