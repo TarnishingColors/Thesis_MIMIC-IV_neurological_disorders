@@ -118,7 +118,7 @@ tables:
         description: "ICD diagnosis code."
       - name: ICD_VERSION
         type: INT
-        description: "ICD version (9 or 10)."
+        description: "ICD version."
 
   - name: PROCEDURES_ICD
     description: "ICD-coded procedures performed during admissions."
@@ -140,7 +140,7 @@ tables:
         description: "ICD procedure code."
       - name: ICD_VERSION
         type: INT
-        description: "ICD version (9 or 10)."
+        description: "ICD version."
 
   - name: CHARTEVENTS
     description: "Time-stamped charted data collected during ICU stays."
